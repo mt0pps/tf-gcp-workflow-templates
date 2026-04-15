@@ -58,9 +58,6 @@ on:
         type: string
         default: ""
 
-permissions:
-  contents: read
-
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
