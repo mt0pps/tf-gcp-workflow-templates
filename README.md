@@ -4,9 +4,9 @@ Reusable GitHub Actions workflows for Terraform-based GCP repositories.
 
 ## Workflows
 
-### reusable-gcp-auth-smoke.yml
+### gcp-auth-smoke.yml
 
-Validates GitHub OIDC auth to Google Cloud, confirms project access, and runs `terraform fmt -check` against a target directory.
+Validates GitHub OIDC auth to Google Cloud, confirms project access, then runs `terraform validate` and `tflint` against a target directory.
 
 **Inputs:**
 - `runner` (optional, default: `arc-runner-set`)
@@ -20,7 +20,7 @@ Validates GitHub OIDC auth to Google Cloud, confirms project access, and runs `t
 ```yaml
 jobs:
   auth-smoke-test:
-    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/reusable-gcp-auth-smoke.yml@main
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/gcp-auth-smoke.yml@main
     with:
       runner: arc-runner-set
       terraform_version: 1.12.2
@@ -30,17 +30,20 @@ jobs:
       gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
 ```
 
-### reusable-terraform-ci.yml
+### terraform-ci.yml
 
-Runs Terraform CI checks: fmt → validate → plan with optional Google Cloud auth.
+Runs Terraform CI checks: validate, lint, and PR plan comments.
 
 **Inputs:**
 - `runner` (optional, default: `arc-runner-set`)
 - `terraform_version` (optional, default: `1.12.2`)
 - `directory` (required): Terraform stack directory
-- `environment` (optional): Environment key for backend init
-- `tfvars` (optional): tfvars file path for plan runs
-- `gcp_project_id` (optional): GCP project ID
+- `environment` (optional): Environment key for a single plan run
+- `tfvars` (optional): tfvars file path for a single plan run
+- `plan_matrix` (optional): JSON array for matrix plan runs
+- `max_parallel` (optional): Maximum matrix parallelism
+- `tfplan2md_version` (optional): `tfplan2md` release version
+- `post_plan_comment` (optional): Toggle sticky PR plan comments
 - `gcp_workload_identity_provider` (optional): For plan auth
 - `gcp_service_account` (optional): For plan auth
 
@@ -48,14 +51,21 @@ Runs Terraform CI checks: fmt → validate → plan with optional Google Cloud a
 ```yaml
 jobs:
   ci:
-    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/reusable-terraform-ci.yml@main
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-ci.yml@main
     with:
       runner: arc-runner-set
       terraform_version: 1.12.2
       directory: 0-bootstrap
       environment: prod
       tfvars: environments/prod.tfvars
-      gcp_project_id: mtopps-iac
       gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
 ```
+
+### terraform-plan-comment.yml
+
+Generates a Terraform plan, renders it with `tfplan2md`, and creates or updates a sticky PR comment for the matching stack and environment.
+
+### terraform-cd.yml
+
+Runs Terraform apply for a single environment or a matrix of environments on `main`.
