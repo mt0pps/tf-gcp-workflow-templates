@@ -1,0 +1,21 @@
+name: Example Terraform CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  ci:
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/reusable-terraform-ci.yml@main
+    with:
+      runner: arc-runner-set
+      terraform_version: 1.12.2
+      directory: 0-bootstrap
+      environment: prod
+      tfvars: environments/prod.tfvars
+      gcp_project_id: mtopps-iac
+      gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
