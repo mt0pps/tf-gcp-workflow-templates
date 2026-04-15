@@ -1,4 +1,4 @@
-name: Reusable Terraform CI
+name: Reusable Terraform CD
 
 on:
   workflow_call:
@@ -17,38 +17,28 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      enable_fmt:
-        description: Whether to run terraform fmt before validate.
-        required: false
-        type: boolean
-        default: true
       environment:
         description: Single environment key used to resolve backend settings from .tinitgcp.
         required: false
         type: string
         default: ""
       tfvars:
-        description: Optional tfvars file path relative to the stack directory for single plan runs.
+        description: Optional tfvars file path relative to the stack directory for single apply runs.
         required: false
         type: string
         default: ""
-      plan_matrix:
-        description: JSON array of objects with environment and tfvars keys for matrix plan runs.
+      apply_matrix:
+        description: JSON array of objects with environment and tfvars keys for matrix apply runs.
         required: false
         type: string
         default: "[]"
-      max_parallel:
-        description: Maximum parallelism for matrix plan runs.
-        required: false
-        type: number
-        default: 1
       gcp_workload_identity_provider:
-        description: Google workload identity provider resource name for plan auth.
+        description: Google workload identity provider resource name for apply auth.
         required: false
         type: string
         default: ""
       gcp_service_account:
-        description: Google service account email used for GitHub OIDC plan auth.
+        description: Google service account email used for GitHub OIDC apply auth.
         required: false
         type: string
         default: ""
@@ -63,67 +53,8 @@ env:
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
-  fmt:
-    if: ${{ inputs.enable_fmt }}
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-
-      - name: Terraform fmt
-        shell: bash
-        run: terraform -chdir="${{ inputs.directory }}" fmt -check -diff -recursive
-
-  validate:
-    needs: fmt
-    if: ${{ !cancelled() && (always() && (inputs.enable_fmt == false || needs.fmt.result == 'success')) }}
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-
-      - name: Ensure plugin cache directory exists
-        shell: bash
-        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
-
-      - name: Cache Terraform plugins
-        uses: actions/cache@v5.0.5
-        with:
-          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/.terraform.lock.hcl', inputs.directory)) }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-${{ inputs.directory }}-
-            ${{ runner.os }}-terraform-
-
-      - name: Terraform init with tinitgcp
-        if: ${{ inputs.environment != '' }}
-        shell: bash
-        run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/bin/tinitgcp" "${{ inputs.environment }}"
-
-      - name: Terraform init without backend
-        if: ${{ inputs.environment == '' }}
-        shell: bash
-        run: terraform -chdir="${{ inputs.directory }}" init -backend=false
-
-      - name: Terraform validate
-        shell: bash
-        run: terraform -chdir="${{ inputs.directory }}" validate
-
-  plan:
-    needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+  apply:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout
@@ -159,19 +90,20 @@ jobs:
         shell: bash
         run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/bin/tinitgcp" "${{ inputs.environment }}"
 
-      - name: Terraform plan
+      - name: Terraform apply
         shell: bash
-        run: terraform -chdir="${{ inputs.directory }}" plan -refresh=false -lock=false -input=false -compact-warnings -var-file="${{ inputs.tfvars }}"
+        run: terraform -chdir="${{ inputs.directory }}" apply -auto-approve -input=false -compact-warnings -var-file="${{ inputs.tfvars }}"
 
-  plan-matrix:
-    needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+  apply-matrix:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
-      max-parallel: ${{ inputs.max_parallel }}
       matrix:
-        include: ${{ fromJson(inputs.plan_matrix) }}
+        include: ${{ fromJson(inputs.apply_matrix) }}
+    concurrency:
+      group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
@@ -206,6 +138,6 @@ jobs:
         shell: bash
         run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/bin/tinitgcp" "${{ matrix.environment }}"
 
-      - name: Terraform plan
+      - name: Terraform apply
         shell: bash
-        run: terraform -chdir="${{ inputs.directory }}" plan -refresh=false -lock=false -input=false -compact-warnings -var-file="${{ matrix.tfvars }}"
+        run: terraform -chdir="${{ inputs.directory }}" apply -auto-approve -input=false -compact-warnings -var-file="${{ matrix.tfvars }}"
