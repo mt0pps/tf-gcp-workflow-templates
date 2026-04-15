@@ -44,6 +44,11 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
