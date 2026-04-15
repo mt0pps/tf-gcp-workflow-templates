@@ -54,6 +54,9 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3.0.1
 
@@ -72,8 +75,22 @@ jobs:
           set -euo pipefail
           gcloud projects describe "${{ inputs.gcp_project_id }}" --format='value(projectNumber)'
 
-      - name: Terraform fmt check
+      - name: Terraform init
         shell: bash
         run: |
           set -euo pipefail
-          terraform -chdir="${{ inputs.terraform_directory }}" fmt -check -diff -recursive
+          terraform -chdir="${{ inputs.terraform_directory }}" init -backend=false
+
+      - name: Terraform validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          terraform -chdir="${{ inputs.terraform_directory }}" validate
+
+      - name: Terraform lint
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${{ inputs.terraform_directory }}"
+          tflint --init
+          tflint --recursive --call-module-type=all
