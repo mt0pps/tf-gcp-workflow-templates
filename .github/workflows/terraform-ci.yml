@@ -60,8 +60,9 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+  pull-requests: write
   issues: write
+  id-token: write
 
 env:
   TF_IN_AUTOMATION: true
@@ -118,8 +119,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
-      id-token: write
+      pull-requests: write
       issues: write
+      id-token: write
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout
@@ -255,8 +257,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
-      id-token: write
+      pull-requests: write
       issues: write
+      id-token: write
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max_parallel }}
