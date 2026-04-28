@@ -63,7 +63,6 @@ permissions:
   pull-requests: write
   issues: write
   id-token: write
-  packages: read
 
 env:
   TF_IN_AUTOMATION: true
@@ -268,7 +267,6 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      packages: read
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max_parallel }}
