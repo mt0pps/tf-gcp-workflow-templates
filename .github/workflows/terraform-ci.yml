@@ -63,6 +63,7 @@ permissions:
   pull-requests: write
   issues: write
   id-token: write
+  packages: read
 
 env:
   TF_IN_AUTOMATION: true
@@ -138,6 +139,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+      packages: read
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout
