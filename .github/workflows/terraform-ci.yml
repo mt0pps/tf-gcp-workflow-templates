@@ -79,6 +79,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
+      - name: Configure git auth for private module repos
+        if: ${{ secrets.REPO_ACCESS_TOKEN != '' }}
+        run: |
+          cat > ~/.netrc <<EOF
+          machine github.com
+            login x-access-token
+            password ${{ secrets.REPO_ACCESS_TOKEN }}
+          EOF
+          chmod 600 ~/.netrc
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
@@ -129,6 +142,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Configure git auth for private module repos
+        if: ${{ secrets.REPO_ACCESS_TOKEN != '' }}
+        run: |
+          cat > ~/.netrc <<EOF
+          machine github.com
+            login x-access-token
+            password ${{ secrets.REPO_ACCESS_TOKEN }}
+          EOF
+          chmod 600 ~/.netrc
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
@@ -276,6 +302,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Configure git auth for private module repos
+        if: ${{ secrets.REPO_ACCESS_TOKEN != '' }}
+        run: |
+          cat > ~/.netrc <<EOF
+          machine github.com
+            login x-access-token
+            password ${{ secrets.REPO_ACCESS_TOKEN }}
+          EOF
+          chmod 600 ~/.netrc
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
