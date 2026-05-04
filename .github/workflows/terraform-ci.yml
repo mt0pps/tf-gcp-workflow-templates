@@ -57,11 +57,6 @@ on:
         required: false
         type: string
         default: ""
-      ssh_private_key:
-        description: Optional SSH private key for cloning private module repos.
-        required: false
-        type: string
-        default: ""
 
 permissions:
   contents: read
@@ -85,20 +80,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Setup SSH key for private module repos
-        if: ${{ inputs.ssh_private_key != '' }}
-        uses: webfactory/ssh-agent@v0.8.1
-        with:
-          ssh-private-key: ${{ inputs.ssh_private_key }}
-
-      - name: Add github.com to known_hosts
-        if: ${{ inputs.ssh_private_key != '' }}
+      - name: Configure git for private modules
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      # No repo access token auth — rely on caller permissions and actions/checkout
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
@@ -155,20 +140,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Setup SSH key for private module repos
-        if: ${{ inputs.ssh_private_key != '' }}
-        uses: webfactory/ssh-agent@v0.8.1
-        with:
-          ssh-private-key: ${{ inputs.ssh_private_key }}
-
-      - name: Add github.com to known_hosts
-        if: ${{ inputs.ssh_private_key != '' }}
+      - name: Configure git for private modules
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      # No repo access token auth — rely on caller permissions and actions/checkout
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
@@ -317,20 +292,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Setup SSH key for private module repos
-        if: ${{ inputs.ssh_private_key != '' }}
-        uses: webfactory/ssh-agent@v0.8.1
-        with:
-          ssh-private-key: ${{ inputs.ssh_private_key }}
-
-      - name: Add github.com to known_hosts
-        if: ${{ inputs.ssh_private_key != '' }}
+      - name: Configure git for private modules
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-
-      # No repo access token auth — rely on caller permissions and actions/checkout
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
