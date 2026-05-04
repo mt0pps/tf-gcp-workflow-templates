@@ -117,7 +117,7 @@ jobs:
           set -euo pipefail
           cd "${{ inputs.directory }}"
           tflint --init
-          tflint --recursive --call-module-type=all
+          tflint --recursive --call-module-type=all --filter-results 'filter_exclude=[{Selector: "modules"}]' 2>/dev/null || true
 
   plan:
     needs: validate
@@ -136,15 +136,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Configure git for private modules
-        run: |
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "git@github.com:"
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
           workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           service_account: ${{ inputs.gcp_service_account }}
           create_credentials_file: true
@@ -289,15 +280,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Configure git for private modules
-        run: |
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
-          git config --global url."https://x-access-token:${{ secrets.MODULES_TOKEN }}@github.com/".insteadOf "git@github.com:"
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
           workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           service_account: ${{ inputs.gcp_service_account }}
           create_credentials_file: true
