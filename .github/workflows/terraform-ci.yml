@@ -57,6 +57,11 @@ on:
         required: false
         type: string
         default: ""
+      ssh_private_key:
+        description: Optional SSH private key for cloning private module repos.
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -81,13 +86,13 @@ jobs:
           persist-credentials: true
 
       - name: Setup SSH key for private module repos
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         uses: webfactory/ssh-agent@v0.8.1
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ inputs.ssh_private_key }}
 
       - name: Add github.com to known_hosts
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -151,13 +156,13 @@ jobs:
           persist-credentials: true
 
       - name: Setup SSH key for private module repos
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         uses: webfactory/ssh-agent@v0.8.1
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ inputs.ssh_private_key }}
 
       - name: Add github.com to known_hosts
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -313,13 +318,13 @@ jobs:
           persist-credentials: true
 
       - name: Setup SSH key for private module repos
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         uses: webfactory/ssh-agent@v0.8.1
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ inputs.ssh_private_key }}
 
       - name: Add github.com to known_hosts
-        if: ${{ secrets.SSH_PRIVATE_KEY != '' }}
+        if: ${{ inputs.ssh_private_key != '' }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
