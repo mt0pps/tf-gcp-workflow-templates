@@ -53,30 +53,214 @@ on:
         type: string
         default: ""
 
-jobs:
-  ci:
-    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-ci.yml@main
-    with:
-      runner: ${{ inputs.runner }}
-      terraform_version: ${{ inputs.terraform_version }}
-      directory: ${{ inputs.directory }}
-      environment: ${{ inputs.environment }}
-      tfvars: ${{ inputs.tfvars }}
-      plan_matrix: ${{ inputs.plan_matrix }}
-      max_parallel: ${{ inputs.max_parallel }}
-      gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
-      gcp_service_account: ${{ inputs.gcp_service_account }}
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
 
-  cd:
-    needs: ci
-    if: github.ref == 'refs/heads/main'
-    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-cd.yml@main
-    with:
-      runner: ${{ inputs.runner }}
-      terraform_version: ${{ inputs.terraform_version }}
-      directory: ${{ inputs.directory }}
-      environment: ${{ inputs.environment }}
-      tfvars: ${{ inputs.tfvars }}
-      apply_matrix: ${{ inputs.apply_matrix }}
-      gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
-      gcp_service_account: ${{ inputs.gcp_service_account }}
+env:
+  TF_IN_AUTOMATION: true
+  TF_INPUT: false
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+
+jobs:
+  # ============================================================================
+  # CI: Validate and Plan
+  # ============================================================================
+  validate:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Checkout templates repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mt0pps/tf-gcp-workflow-templates
+          ref: main
+          path: templates
+
+      - name: Setup Terraform and TFLint
+        uses: ./templates/.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Validate and Lint
+        uses: ./templates/.github/actions/terraform-validate
+        with:
+          directory: ${{ inputs.directory }}
+
+  plan:
+    needs: validate
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Checkout templates repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mt0pps/tf-gcp-workflow-templates
+          ref: main
+          path: templates
+
+      - name: Authenticate to Google Cloud
+        uses: ./templates/.github/actions/gcp-auth
+        with:
+          gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+          gcp_service_account: ${{ inputs.gcp_service_account }}
+
+      - name: Setup Terraform and TFLint
+        uses: ./templates/.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Terraform Plan
+        uses: ./templates/.github/actions/terraform-plan
+        with:
+          directory: ${{ inputs.directory }}
+          environment: ${{ inputs.environment }}
+          tfvars: ${{ inputs.tfvars }}
+
+  plan-matrix:
+    needs: validate
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ inputs.max_parallel }}
+      matrix:
+        include: ${{ fromJson(inputs.plan_matrix) }}
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Checkout templates repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mt0pps/tf-gcp-workflow-templates
+          ref: main
+          path: templates
+
+      - name: Authenticate to Google Cloud
+        uses: ./templates/.github/actions/gcp-auth
+        with:
+          gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+          gcp_service_account: ${{ inputs.gcp_service_account }}
+
+      - name: Setup Terraform and TFLint
+        uses: ./templates/.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Terraform Plan
+        uses: ./templates/.github/actions/terraform-plan
+        with:
+          directory: ${{ inputs.directory }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}
+
+  # ============================================================================
+  # CD: Apply (only on main after CI passes)
+  # ============================================================================
+  apply:
+    needs: [validate, plan, plan-matrix]
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    runs-on: ${{ inputs.runner }}
+    concurrency:
+      group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
+      cancel-in-progress: false
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Checkout templates repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mt0pps/tf-gcp-workflow-templates
+          ref: main
+          path: templates
+
+      - name: Authenticate to Google Cloud
+        uses: ./templates/.github/actions/gcp-auth
+        with:
+          gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+          gcp_service_account: ${{ inputs.gcp_service_account }}
+
+      - name: Setup Terraform
+        uses: ./templates/.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Terraform Apply
+        uses: ./templates/.github/actions/terraform-apply
+        with:
+          directory: ${{ inputs.directory }}
+          environment: ${{ inputs.environment }}
+          tfvars: ${{ inputs.tfvars }}
+
+  apply-matrix:
+    needs: [validate, plan, plan-matrix]
+    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    runs-on: ${{ inputs.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.apply_matrix) }}
+    concurrency:
+      group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
+      cancel-in-progress: false
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Checkout templates repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mt0pps/tf-gcp-workflow-templates
+          ref: main
+          path: templates
+
+      - name: Authenticate to Google Cloud
+        uses: ./templates/.github/actions/gcp-auth
+        with:
+          gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+          gcp_service_account: ${{ inputs.gcp_service_account }}
+
+      - name: Setup Terraform
+        uses: ./templates/.github/actions/terraform-setup
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Terraform Apply
+        uses: ./templates/.github/actions/terraform-apply
+        with:
+          directory: ${{ inputs.directory }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}
