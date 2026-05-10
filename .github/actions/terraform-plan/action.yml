@@ -17,7 +17,7 @@ runs:
   steps:
     - name: Terraform init with tinitgcp
       shell: bash
-      run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/bin/tinitgcp" "${{ inputs.environment }}"
+      run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/templates/bin/tinitgcp" "${{ inputs.environment }}"
 
     - name: Terraform plan
       shell: bash
