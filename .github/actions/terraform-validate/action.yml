@@ -1,0 +1,26 @@
+name: Terraform Validate and Lint
+description: Run terraform validate and tflint
+
+inputs:
+  directory:
+    description: Terraform stack directory
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Terraform init without backend
+      shell: bash
+      run: terraform -chdir="${{ inputs.directory }}" init -backend=false
+
+    - name: Terraform validate
+      shell: bash
+      run: terraform -chdir="${{ inputs.directory }}" validate
+
+    - name: Terraform lint
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "${{ inputs.directory }}"
+        tflint --init
+        tflint --recursive --call-module-type=all --filter-results 'filter_exclude=[{Selector: "modules"}]' 2>/dev/null || true

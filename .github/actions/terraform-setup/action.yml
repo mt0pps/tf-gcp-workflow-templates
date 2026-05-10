@@ -1,0 +1,35 @@
+name: Setup Terraform
+description: Setup Terraform, TFLint, and plugin cache
+
+inputs:
+  terraform_version:
+    description: Terraform version to install
+    required: true
+  directory:
+    description: Terraform stack directory
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
+        terraform_wrapper: false
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@90f302c255ef959cbfb4bd10581afecdb7ece3e6 # v4.1.1
+
+    - name: Ensure plugin cache directory exists
+      shell: bash
+      run: mkdir -p "${{ env.TF_PLUGIN_CACHE_DIR }}"
+
+    - name: Cache Terraform plugins
+      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      with:
+        path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+        key: ${{ runner.os }}-terraform-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/.terraform.lock.hcl', inputs.directory)) }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-${{ inputs.directory }}-
+          ${{ runner.os }}-terraform-

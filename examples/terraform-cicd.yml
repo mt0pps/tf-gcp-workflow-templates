@@ -1,15 +1,21 @@
-name: Example Terraform CI
+name: Example Terraform CI/CD
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
 
 jobs:
-  ci:
-    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-ci.yml@main
+  cicd:
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-cicd.yml@main
     with:
       runner: arc-runner-set
       terraform_version: 1.12.2
