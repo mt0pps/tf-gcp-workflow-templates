@@ -1,0 +1,82 @@
+name: Terraform CI/CD
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: Runner label to execute on.
+        required: false
+        type: string
+        default: arc-runner-set
+      terraform_version:
+        description: Terraform version to install.
+        required: false
+        type: string
+        default: 1.12.2
+      directory:
+        description: Terraform stack directory relative to repository root.
+        required: true
+        type: string
+      environment:
+        description: Environment key for single runs.
+        required: false
+        type: string
+        default: ""
+      tfvars:
+        description: tfvars file path relative to the stack directory.
+        required: false
+        type: string
+        default: ""
+      plan_matrix:
+        description: JSON array of objects for matrix CI runs.
+        required: false
+        type: string
+        default: "[]"
+      apply_matrix:
+        description: JSON array of objects for matrix CD runs.
+        required: false
+        type: string
+        default: "[]"
+      max_parallel:
+        description: Maximum parallelism for matrix plan runs.
+        required: false
+        type: number
+        default: 1
+      gcp_workload_identity_provider:
+        description: Google workload identity provider resource name.
+        required: false
+        type: string
+        default: ""
+      gcp_service_account:
+        description: Google service account email for GitHub OIDC auth.
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  ci:
+    uses: ./.github/workflows/terraform-ci.yml
+    with:
+      runner: ${{ inputs.runner }}
+      terraform_version: ${{ inputs.terraform_version }}
+      directory: ${{ inputs.directory }}
+      environment: ${{ inputs.environment }}
+      tfvars: ${{ inputs.tfvars }}
+      plan_matrix: ${{ inputs.plan_matrix }}
+      max_parallel: ${{ inputs.max_parallel }}
+      gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+      gcp_service_account: ${{ inputs.gcp_service_account }}
+
+  cd:
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/terraform-cd.yml
+    with:
+      runner: ${{ inputs.runner }}
+      terraform_version: ${{ inputs.terraform_version }}
+      directory: ${{ inputs.directory }}
+      environment: ${{ inputs.environment }}
+      tfvars: ${{ inputs.tfvars }}
+      apply_matrix: ${{ inputs.apply_matrix }}
+      gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+      gcp_service_account: ${{ inputs.gcp_service_account }}

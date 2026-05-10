@@ -1,0 +1,24 @@
+name: Terraform Apply
+description: Initialize Terraform backend and run terraform apply
+
+inputs:
+  directory:
+    description: Terraform stack directory
+    required: true
+  environment:
+    description: Environment name
+    required: true
+  tfvars:
+    description: Path to tfvars file
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Terraform init with tinitgcp
+      shell: bash
+      run: cd "${{ inputs.directory }}" && bash "$GITHUB_WORKSPACE/bin/tinitgcp" "${{ inputs.environment }}"
+
+    - name: Terraform apply
+      shell: bash
+      run: terraform -chdir="${{ inputs.directory }}" apply -auto-approve -input=false -compact-warnings -var-file="${{ inputs.tfvars }}"
