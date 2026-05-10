@@ -55,7 +55,7 @@ on:
 
 jobs:
   ci:
-    uses: ./.github/workflows/terraform-ci.yml
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-ci.yml@main
     with:
       runner: ${{ inputs.runner }}
       terraform_version: ${{ inputs.terraform_version }}
@@ -70,7 +70,7 @@ jobs:
   cd:
     needs: ci
     if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/terraform-cd.yml
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-cd.yml@main
     with:
       runner: ${{ inputs.runner }}
       terraform_version: ${{ inputs.terraform_version }}

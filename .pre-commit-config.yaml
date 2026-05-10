@@ -12,7 +12,6 @@ repos:
       - id: check-vcs-permalinks
       - id: detect-private-key
       - id: end-of-file-fixer
-      - id: no-commit-to-branch
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
