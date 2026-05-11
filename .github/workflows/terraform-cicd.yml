@@ -83,6 +83,7 @@ jobs:
           repository: mt0pps/tf-gcp-workflow-templates
           ref: main
           path: templates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Terraform and TFLint
         uses: ./templates/.github/actions/terraform-setup
@@ -117,6 +118,7 @@ jobs:
           repository: mt0pps/tf-gcp-workflow-templates
           ref: main
           path: templates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: ./templates/.github/actions/gcp-auth
@@ -164,6 +166,7 @@ jobs:
           repository: mt0pps/tf-gcp-workflow-templates
           ref: main
           path: templates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: ./templates/.github/actions/gcp-auth
@@ -206,6 +209,7 @@ jobs:
           repository: mt0pps/tf-gcp-workflow-templates
           ref: main
           path: templates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: ./templates/.github/actions/gcp-auth
@@ -249,6 +253,7 @@ jobs:
           repository: mt0pps/tf-gcp-workflow-templates
           ref: main
           path: templates
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: ./templates/.github/actions/gcp-auth
