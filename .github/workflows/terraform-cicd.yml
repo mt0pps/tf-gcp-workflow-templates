@@ -88,14 +88,14 @@ jobs:
 
       - name: Setup Terraform and TFLint
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Validate and Lint
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-validate
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-validate
         with:
           directory: ${{ inputs.directory }}
 
@@ -130,21 +130,21 @@ jobs:
 
       - name: Authenticate to Google Cloud
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform and TFLint
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Plan
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-plan
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-plan
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
@@ -186,21 +186,21 @@ jobs:
 
       - name: Authenticate to Google Cloud
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform and TFLint
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Plan
         if: github.event_name != 'pull_request'
-        uses: ./templates/.github/actions/terraform-plan
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-plan
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
@@ -235,19 +235,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
-        uses: ./templates/.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform
-        uses: ./templates/.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Apply
-        uses: ./templates/.github/actions/terraform-apply
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-apply
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
@@ -279,19 +279,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
-        uses: ./templates/.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform
-        uses: ./templates/.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Apply
-        uses: ./templates/.github/actions/terraform-apply
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-apply
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
