@@ -60,13 +60,13 @@ jobs:
           persist-credentials: true
 
       - name: Setup Terraform and TFLint
-        uses: ./.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Validate and Lint
-        uses: ./.github/actions/terraform-validate
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-validate@main
         with:
           directory: ${{ inputs.directory }}
 
@@ -87,19 +87,19 @@ jobs:
           persist-credentials: true
 
       - name: Authenticate to Google Cloud
-        uses: ./.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform and TFLint
-        uses: ./.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Plan
-        uses: ./.github/actions/terraform-plan
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-plan@main
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}

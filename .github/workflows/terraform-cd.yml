@@ -59,19 +59,19 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Authenticate to Google Cloud
-        uses: ./.github/actions/gcp-auth
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform
-        uses: ./.github/actions/terraform-setup
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Apply
-        uses: ./.github/actions/terraform-apply
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-apply@main
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
