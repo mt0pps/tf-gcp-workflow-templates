@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Terraform CI Matrix
 
 on:
   workflow_call:
@@ -17,16 +17,16 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      environment:
-        description: Single environment key used for plan runs.
+      plan_matrix:
+        description: JSON array of objects with environment and tfvars keys for matrix plan runs.
         required: false
         type: string
-        default: ""
-      tfvars:
-        description: Optional tfvars file path relative to the stack directory for single plan runs.
+        default: "[]"
+      max_parallel:
+        description: Maximum parallelism for matrix plan runs.
         required: false
-        type: string
-        default: ""
+        type: number
+        default: 1
       gcp_workload_identity_provider:
         description: Google workload identity provider resource name for plan auth.
         required: false
@@ -70,14 +70,19 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
 
-  plan:
+  plan-matrix:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
       issues: write
       id-token: write
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ inputs.max_parallel }}
+      matrix:
+        include: ${{ fromJson(inputs.plan_matrix) }}
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout
@@ -102,5 +107,5 @@ jobs:
         uses: ./.github/actions/terraform-plan
         with:
           directory: ${{ inputs.directory }}
-          environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}

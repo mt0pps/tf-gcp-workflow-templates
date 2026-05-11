@@ -1,4 +1,4 @@
-name: Terraform CD
+name: Terraform CD Matrix
 
 on:
   workflow_call:
@@ -17,16 +17,11 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      environment:
-        description: Single environment key used to resolve backend settings from .tinitgcp.
+      apply_matrix:
+        description: JSON array of objects with environment and tfvars keys for matrix apply runs.
         required: false
         type: string
-        default: ""
-      tfvars:
-        description: Optional tfvars file path relative to the stack directory for single apply runs.
-        required: false
-        type: string
-        default: ""
+        default: "[]"
       gcp_workload_identity_provider:
         description: Google workload identity provider resource name for apply auth.
         required: false
@@ -38,21 +33,21 @@ on:
         type: string
         default: ""
 
-permissions:
-  contents: read
-  id-token: write
-
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
-  apply:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+  apply-matrix:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.apply_matrix) }}
     concurrency:
-      group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
+      group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
       cancel-in-progress: false
     steps:
       - name: Checkout
@@ -74,5 +69,5 @@ jobs:
         uses: ./.github/actions/terraform-apply
         with:
           directory: ${{ inputs.directory }}
-          environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}
