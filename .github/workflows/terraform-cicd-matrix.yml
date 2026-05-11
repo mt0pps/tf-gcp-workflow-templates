@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Terraform CI/CD Matrix
 
 on:
   workflow_call:
@@ -17,16 +17,21 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      environment:
-        description: Environment key for single runs.
+      plan_matrix:
+        description: JSON array of objects for matrix CI runs.
         required: false
         type: string
-        default: ""
-      tfvars:
-        description: tfvars file path relative to the stack directory.
+        default: "[]"
+      apply_matrix:
+        description: JSON array of objects for matrix CD runs.
         required: false
         type: string
-        default: ""
+        default: "[]"
+      max_parallel:
+        description: Maximum parallelism for matrix plan runs.
+        required: false
+        type: number
+        default: 1
       gcp_workload_identity_provider:
         description: Google workload identity provider resource name.
         required: false
@@ -51,7 +56,7 @@ env:
 
 jobs:
   # ============================================================================
-  # CI: Validate and Plan
+  # CI: Validate and Plan Matrix
   # ============================================================================
   validate:
     runs-on: ${{ inputs.runner }}
@@ -73,14 +78,19 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
 
-  plan:
+  plan-matrix:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
       issues: write
       id-token: write
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ inputs.max_parallel }}
+      matrix:
+        include: ${{ fromJson(inputs.plan_matrix) }}
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout caller repository
@@ -105,18 +115,22 @@ jobs:
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-plan@main
         with:
           directory: ${{ inputs.directory }}
-          environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}
 
   # ============================================================================
-  # CD: Apply (only on main after CI passes)
+  # CD: Apply Matrix (only on main after CI passes)
   # ============================================================================
-  apply:
-    needs: [validate, plan]
-    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+  apply-matrix:
+    needs: [validate, plan-matrix]
+    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(inputs.apply_matrix) }}
     concurrency:
-      group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
+      group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
       cancel-in-progress: false
     steps:
       - name: Checkout caller repository
@@ -148,5 +162,5 @@ jobs:
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-apply@main
         with:
           directory: ${{ inputs.directory }}
-          environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          environment: ${{ matrix.environment }}
+          tfvars: ${{ matrix.tfvars }}
