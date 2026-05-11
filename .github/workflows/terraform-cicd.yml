@@ -78,14 +78,6 @@ jobs:
           persist-credentials: true
 
       - name: Checkout templates repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: mt0pps/tf-gcp-workflow-templates
-          ref: main
-          path: templates
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout templates repository
         if: github.event_name != 'pull_request'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
