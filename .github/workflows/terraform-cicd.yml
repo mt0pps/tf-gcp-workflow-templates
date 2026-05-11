@@ -78,7 +78,6 @@ jobs:
           persist-credentials: true
 
       - name: Checkout templates repository
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: mt0pps/tf-gcp-workflow-templates
@@ -87,21 +86,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Terraform and TFLint
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Validate and Lint
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-validate
         with:
           directory: ${{ inputs.directory }}
-
-      - name: Skip on PR - templates repo not accessible
-        if: github.event_name == 'pull_request'
-        run: echo "Skipping terraform validation on PR - templates repo requires push event context"
 
   plan:
     needs: validate
@@ -120,7 +113,6 @@ jobs:
           persist-credentials: true
 
       - name: Checkout templates repository
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: mt0pps/tf-gcp-workflow-templates
@@ -129,30 +121,23 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform and TFLint
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Plan
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-plan
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
           tfvars: ${{ inputs.tfvars }}
-
-      - name: Skip on PR
-        if: github.event_name == 'pull_request'
-        run: echo "Plan skipped on PR - requires push event context for templates access"
 
   plan-matrix:
     needs: validate
@@ -176,7 +161,6 @@ jobs:
           persist-credentials: true
 
       - name: Checkout templates repository
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: mt0pps/tf-gcp-workflow-templates
@@ -185,30 +169,23 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/gcp-auth
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
       - name: Setup Terraform and TFLint
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-setup
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
 
       - name: Terraform Plan
-        if: github.event_name != 'pull_request'
         uses: ./templates/.github/actions/terraform-plan
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
           tfvars: ${{ matrix.tfvars }}
-
-      - name: Skip on PR
-        if: github.event_name == 'pull_request'
-        run: echo "Plan-matrix skipped on PR"
 
   # ============================================================================
   # CD: Apply (only on main after CI passes)
