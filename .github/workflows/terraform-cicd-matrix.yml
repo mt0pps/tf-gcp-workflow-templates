@@ -123,7 +123,7 @@ jobs:
   # ============================================================================
   apply-matrix:
     needs: validate
-    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: github.ref == 'refs/heads/main'
     runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false

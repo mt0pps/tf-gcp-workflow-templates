@@ -113,7 +113,7 @@ jobs:
   # ============================================================================
   apply:
     needs: validate
-    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: github.ref == 'refs/heads/main'
     runs-on: ${{ inputs.runner }}
     concurrency:
       group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
