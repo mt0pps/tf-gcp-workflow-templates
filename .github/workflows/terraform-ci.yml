@@ -59,8 +59,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Setup Terraform and TFLint
+      - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Setup TFLint
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-lint@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
@@ -92,7 +98,7 @@ jobs:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
-      - name: Setup Terraform and TFLint
+      - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}

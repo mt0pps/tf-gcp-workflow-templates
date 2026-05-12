@@ -1,5 +1,5 @@
 name: Setup Terraform
-description: Setup Terraform, TFLint, and plugin cache
+description: Setup Terraform and plugin cache
 
 inputs:
   terraform_version:
@@ -17,9 +17,6 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform_version }}
         terraform_wrapper: false
-
-    - name: Setup TFLint
-      uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
 
     - name: Ensure plugin cache directory exists
       shell: bash

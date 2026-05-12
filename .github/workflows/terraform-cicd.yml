@@ -91,8 +91,14 @@ jobs:
           git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
           git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
 
-      - name: Setup Terraform and TFLint
+      - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          directory: ${{ inputs.directory }}
+
+      - name: Setup TFLint
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-lint@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
@@ -151,7 +157,7 @@ jobs:
           tenant_id: ${{ vars.ARM_TENANT_ID }}
           client_id: ${{ vars.ARM_CLIENT_ID }}
 
-      - name: Setup Terraform and TFLint
+      - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
