@@ -37,6 +37,14 @@ on:
         required: false
         type: string
         default: ""
+      checkout_app_id:
+        description: GitHub App ID for cloning private Terraform modules.
+        required: false
+        type: string
+        default: ""
+    secrets:
+      CHECKOUT_APP_PEM_FILE:
+        required: false
 
 permissions:
   contents: read
@@ -61,6 +69,22 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
+
+      - name: Get Module Access Token
+        id: checkout-token
+        if: inputs.checkout_app_id != ''
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ inputs.checkout_app_id }}
+          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Configure Git for Private Modules
+        if: steps.checkout-token.conclusion == 'success'
+        shell: bash
+        run: |
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
 
       - name: Setup Terraform and TFLint
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
@@ -89,6 +113,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
+      - name: Get Module Access Token
+        id: checkout-token
+        if: inputs.checkout_app_id != ''
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ inputs.checkout_app_id }}
+          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Configure Git for Private Modules
+        if: steps.checkout-token.conclusion == 'success'
+        shell: bash
+        run: |
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
+
       - name: Authenticate to Google Cloud
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
         with:
@@ -108,9 +148,6 @@ jobs:
           environment: ${{ inputs.environment }}
           tfvars: ${{ inputs.tfvars }}
 
-  # ============================================================================
-  # CD: Apply (only on main after CI passes)
-  # ============================================================================
   apply:
     needs: validate
     if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
@@ -123,6 +160,22 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Module Access Token
+        id: checkout-token
+        if: inputs.checkout_app_id != ''
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ inputs.checkout_app_id }}
+          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Configure Git for Private Modules
+        if: steps.checkout-token.conclusion == 'success'
+        shell: bash
+        run: |
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
+          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
 
       - name: Authenticate to Google Cloud
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
