@@ -112,7 +112,7 @@ jobs:
   # CD: Apply (only on main after CI passes)
   # ============================================================================
   apply:
-    needs: [validate, plan]
+    needs: validate
     if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     concurrency:

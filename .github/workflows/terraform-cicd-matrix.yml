@@ -122,7 +122,7 @@ jobs:
   # CD: Apply Matrix (only on main after CI passes)
   # ============================================================================
   apply-matrix:
-    needs: [validate, plan-matrix]
+    needs: validate
     if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     strategy:
