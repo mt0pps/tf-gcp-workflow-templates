@@ -123,7 +123,7 @@ jobs:
   # ============================================================================
   apply-matrix:
     needs: validate
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
@@ -136,14 +136,6 @@ jobs:
       - name: Checkout caller repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout templates repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          repository: mt0pps/tf-gcp-workflow-templates
-          ref: main
-          path: templates
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
