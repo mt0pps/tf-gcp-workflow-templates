@@ -67,9 +67,6 @@ jobs:
 
       - name: Setup TFLint
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-lint@main
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          directory: ${{ inputs.directory }}
 
       - name: Validate and Lint
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-validate@main
