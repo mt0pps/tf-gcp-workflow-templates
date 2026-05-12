@@ -1,0 +1,20 @@
+name: Authenticate to Azure
+description: Configure environment variables for the AzureAD Terraform provider using OIDC (Workload Identity Federation)
+
+inputs:
+  tenant_id:
+    description: Azure AD tenant ID
+    required: true
+  client_id:
+    description: Azure AD application (client) ID
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set Azure provider environment variables
+      shell: bash
+      run: |
+        echo "ARM_TENANT_ID=${{ inputs.tenant_id }}" >> "$GITHUB_ENV"
+        echo "ARM_CLIENT_ID=${{ inputs.client_id }}" >> "$GITHUB_ENV"
+        echo "ARM_USE_OIDC=true" >> "$GITHUB_ENV"
