@@ -78,7 +78,7 @@ jobs:
       - name: Get Module Access Token
         id: checkout-token
         if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
@@ -128,7 +128,7 @@ jobs:
       - name: Get Module Access Token
         id: checkout-token
         if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
@@ -187,7 +187,7 @@ jobs:
       - name: Get Module Access Token
         id: checkout-token
         if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
