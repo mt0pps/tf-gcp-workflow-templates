@@ -63,7 +63,15 @@ fi
 
 env_vars_file="${config_dir}/environments/${env}.tfvars"
 
-if [[ ! -f $env_vars_file ]]; then
+if [[ ! -f "$env_vars_file" ]]; then
+    case "$env" in
+        sandbox)
+            env_vars_file="${config_dir}/environments/sand.tfvars"
+            ;;
+    esac
+fi
+
+if [[ ! -f "$env_vars_file" ]]; then
     echo "Warning: environment vars file '${env_vars_file}' not found" >&2
 fi
 
