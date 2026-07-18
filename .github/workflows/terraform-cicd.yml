@@ -80,7 +80,7 @@ jobs:
         if: inputs.checkout_app_id != ''
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ inputs.checkout_app_id }}
+          client-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
           owner: ${{ github.repository_owner }}
 
@@ -130,7 +130,7 @@ jobs:
         if: inputs.checkout_app_id != ''
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ inputs.checkout_app_id }}
+          client-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
           owner: ${{ github.repository_owner }}
 
@@ -189,7 +189,7 @@ jobs:
         if: inputs.checkout_app_id != ''
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ inputs.checkout_app_id }}
+          client-id: ${{ inputs.checkout_app_id }}
           private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
           owner: ${{ github.repository_owner }}
 
