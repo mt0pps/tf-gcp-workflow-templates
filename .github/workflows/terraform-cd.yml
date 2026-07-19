@@ -23,7 +23,7 @@ on:
         type: string
         default: ""
       tfvars:
-        description: Optional tfvars file path relative to the stack directory for single apply runs.
+        description: Deprecated; tfvars path is derived from the environment name by convention.
         required: false
         type: string
         default: ""
@@ -49,7 +49,7 @@ env:
 
 jobs:
   apply:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     concurrency:
       group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
@@ -75,4 +75,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          tfvars: environments/${{ inputs.environment }}.tfvars

@@ -17,8 +17,8 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      plan_matrix:
-        description: JSON array of objects with environment and tfvars keys for matrix plan runs.
+      environments:
+        description: JSON array of environment names for matrix plan runs.
         required: false
         type: string
         default: "[]"
@@ -75,7 +75,7 @@ jobs:
 
   plan-matrix:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environments != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       max-parallel: ${{ inputs.max_parallel }}
       matrix:
-        include: ${{ fromJson(inputs.plan_matrix) }}
+        environment: ${{ fromJson(inputs.environments) }}
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout
@@ -111,4 +111,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
-          tfvars: ${{ matrix.tfvars }}
+          tfvars: environments/${{ matrix.environment }}.tfvars

@@ -17,8 +17,8 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      apply_matrix:
-        description: JSON array of objects with environment and tfvars keys for matrix apply runs.
+      environments:
+        description: JSON array of environment names for matrix apply runs.
         required: false
         type: string
         default: "[]"
@@ -40,12 +40,12 @@ env:
 
 jobs:
   apply-matrix:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environments != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(inputs.apply_matrix) }}
+        environment: ${{ fromJson(inputs.environments) }}
     concurrency:
       group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
       cancel-in-progress: false
@@ -70,4 +70,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
-          tfvars: ${{ matrix.tfvars }}
+          tfvars: environments/${{ matrix.environment }}.tfvars

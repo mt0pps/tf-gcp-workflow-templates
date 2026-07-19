@@ -17,13 +17,8 @@ on:
         description: Terraform stack directory relative to repository root.
         required: true
         type: string
-      plan_matrix:
-        description: JSON array of objects for matrix CI runs.
-        required: false
-        type: string
-        default: "[]"
-      apply_matrix:
-        description: JSON array of objects for matrix CD runs.
+      environments:
+        description: JSON array of environment names for matrix CI/CD runs.
         required: false
         type: string
         default: "[]"
@@ -112,7 +107,7 @@ jobs:
 
   plan-matrix:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.plan_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environments != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
@@ -122,7 +117,7 @@ jobs:
       fail-fast: false
       max-parallel: ${{ inputs.max_parallel }}
       matrix:
-        include: ${{ fromJson(inputs.plan_matrix) }}
+        environment: ${{ fromJson(inputs.environments) }}
     runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout caller repository
@@ -171,19 +166,19 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
-          tfvars: ${{ matrix.tfvars }}
+          tfvars: environments/${{ matrix.environment }}.tfvars
 
   # ============================================================================
   # CD: Apply Matrix (only on main after CI passes)
   # ============================================================================
   apply-matrix:
     needs: validate
-    if: ${{ github.ref == 'refs/heads/main' && inputs.apply_matrix != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environments != '[]' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(inputs.apply_matrix) }}
+        environment: ${{ fromJson(inputs.environments) }}
     concurrency:
       group: terraform-${{ inputs.directory }}-${{ matrix.environment }}-apply
       cancel-in-progress: false
@@ -233,4 +228,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ matrix.environment }}
-          tfvars: ${{ matrix.tfvars }}
+          tfvars: environments/${{ matrix.environment }}.tfvars

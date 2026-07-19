@@ -23,7 +23,7 @@ on:
         type: string
         default: ""
       tfvars:
-        description: tfvars file path relative to the stack directory.
+        description: Deprecated; tfvars path is derived from the environment name by convention.
         required: false
         type: string
         default: ""
@@ -107,7 +107,7 @@ jobs:
 
   plan:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
@@ -165,11 +165,11 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          tfvars: environments/${{ inputs.environment }}.tfvars
 
   apply:
     needs: validate
-    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
     env:
       ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
@@ -225,4 +225,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          tfvars: environments/${{ inputs.environment }}.tfvars

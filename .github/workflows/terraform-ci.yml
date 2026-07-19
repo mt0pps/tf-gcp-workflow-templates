@@ -23,7 +23,7 @@ on:
         type: string
         default: ""
       tfvars:
-        description: Optional tfvars file path relative to the stack directory for single plan runs.
+        description: Deprecated; tfvars path is derived from the environment name by convention.
         required: false
         type: string
         default: ""
@@ -75,7 +75,7 @@ jobs:
 
   plan:
     needs: validate
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.tfvars != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && inputs.environment != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     permissions:
       contents: read
       pull-requests: write
@@ -106,4 +106,4 @@ jobs:
         with:
           directory: ${{ inputs.directory }}
           environment: ${{ inputs.environment }}
-          tfvars: ${{ inputs.tfvars }}
+          tfvars: environments/${{ inputs.environment }}.tfvars
