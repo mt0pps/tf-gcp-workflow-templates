@@ -47,7 +47,6 @@ permissions:
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
   validate:
@@ -64,9 +63,6 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
-
-      - name: Setup TFLint
-        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-lint@main
 
       - name: Validate and Lint
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-validate@main

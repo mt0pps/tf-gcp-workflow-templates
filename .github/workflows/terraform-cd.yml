@@ -45,7 +45,6 @@ permissions:
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
   apply:
