@@ -1,0 +1,1 @@
+state_location["prod"]="terraform-state-storage-example/tfstate/${folder_name}/${env}"

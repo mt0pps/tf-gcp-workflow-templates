@@ -15,10 +15,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Terraform init with tinitgcp
+    - name: Terraform init with tf_init
       shell: bash
-      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/tinitgcp" "${{ inputs.environment }}"
+      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/../../scripts/tf_init" "${{ inputs.environment }}"
 
-    - name: Terraform apply
+    - name: Terraform apply - ${{ inputs.environment }}
       shell: bash
       run: terraform -chdir="${{ inputs.directory }}" apply -auto-approve -input=false -compact-warnings -var-file="${{ inputs.tfvars }}"

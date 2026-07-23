@@ -60,7 +60,6 @@ permissions:
 env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
   # ============================================================================
@@ -75,30 +74,17 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Get Module Access Token
-        id: checkout-token
-        if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ inputs.checkout_app_id }}
-          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
-          owner: ${{ github.repository_owner }}
-
       - name: Configure Git for Private Modules
-        if: steps.checkout-token.conclusion == 'success'
-        shell: bash
-        run: |
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
+        uses: ./.github/actions/configure-git-for-modules@main
+        with:
+          checkout_app_id: ${{ inputs.checkout_app_id }}
+          pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
 
       - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
           terraform_version: ${{ inputs.terraform_version }}
           directory: ${{ inputs.directory }}
-
-      - name: Setup TFLint
-        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-lint@main
 
       - name: Validate and Lint
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-validate@main
@@ -114,10 +100,6 @@ jobs:
       issues: write
       id-token: write
     runs-on: ${{ inputs.runner }}
-    env:
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
     steps:
       - name: Checkout caller repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -125,21 +107,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Get Module Access Token
-        id: checkout-token
-        if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ inputs.checkout_app_id }}
-          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
-          owner: ${{ github.repository_owner }}
-
       - name: Configure Git for Private Modules
-        if: steps.checkout-token.conclusion == 'success'
-        shell: bash
-        run: |
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
+        uses: ./.github/actions/configure-git-for-modules@main
+        with:
+          checkout_app_id: ${{ inputs.checkout_app_id }}
+          pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
 
       - name: Authenticate to Google Cloud
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
@@ -150,6 +122,10 @@ jobs:
       - name: Authenticate to Azure
         if: inputs.azure_auth_enabled
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/azure-auth@main
+        env:
+          ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         with:
           tenant_id: ${{ vars.ARM_TENANT_ID }}
           client_id: ${{ vars.ARM_CLIENT_ID }}
@@ -171,10 +147,6 @@ jobs:
     needs: validate
     if: ${{ github.ref == 'refs/heads/main' && inputs.environment != '' && inputs.gcp_workload_identity_provider != '' && inputs.gcp_service_account != '' }}
     runs-on: ${{ inputs.runner }}
-    env:
-      ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-      ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
     concurrency:
       group: terraform-${{ inputs.directory }}-${{ inputs.environment }}-apply
       cancel-in-progress: false
@@ -184,21 +156,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Module Access Token
-        id: checkout-token
-        if: inputs.checkout_app_id != ''
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ inputs.checkout_app_id }}
-          private-key: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
-          owner: ${{ github.repository_owner }}
-
       - name: Configure Git for Private Modules
-        if: steps.checkout-token.conclusion == 'success'
-        shell: bash
-        run: |
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
-          git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/
+        uses: ./.github/actions/configure-git-for-modules@main
+        with:
+          checkout_app_id: ${{ inputs.checkout_app_id }}
+          pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
 
       - name: Authenticate to Google Cloud
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/gcp-auth@main
@@ -209,10 +171,13 @@ jobs:
       - name: Authenticate to Azure
         if: inputs.azure_auth_enabled
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/azure-auth@main
+        env:
+          ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         with:
           tenant_id: ${{ vars.ARM_TENANT_ID }}
           client_id: ${{ vars.ARM_CLIENT_ID }}
-          client_secret: ${{ secrets.ARM_CLIENT_SECRET }}
 
       - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main

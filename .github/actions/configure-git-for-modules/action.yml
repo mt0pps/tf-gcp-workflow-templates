@@ -1,0 +1,36 @@
+name: Configure Git for Private Modules
+description: Configure Git to use GitHub App token for cloning private Terraform modules
+
+inputs:
+  checkout_app_id:
+    description: GitHub App ID for cloning private Terraform modules
+    required: false
+    default: ""
+  pem_file:
+    description: GitHub App private key PEM file content
+    required: false
+    default: ""
+
+outputs:
+  token:
+    description: Generated GitHub App token
+    value: ${{ steps.checkout-token.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get Module Access Token
+      id: checkout-token
+      if: ${{ inputs.checkout_app_id != '' }}
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ inputs.checkout_app_id }}
+        private-key: ${{ inputs.pem_file }}
+        owner: ${{ github.repository_owner }}
+
+    - name: Configure Git for Private Modules
+      if: ${{ steps.checkout-token.conclusion == 'success' }}
+      shell: bash
+      run: |
+        git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com".insteadOf https://github.com
+        git config --global url."https://actions:${{ steps.checkout-token.outputs.token }}@github.com/".insteadOf ssh://git@github.com/

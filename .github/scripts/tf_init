@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+# ============================================================================
+# tf_init - Terraform backend initialization helper for GCS.
+# ============================================================================
+#
+# Usage: tf_init [-d] [BUCKET/PREFIX] ENVIRONMENT
+#
+# With one argument, reads the environment-specific state path from .tinitgcp.
+# With two arguments, uses the provided BUCKET/PREFIX directly.
+#
+# Example .tinitgcp:
+#   declare -A state_location
+#   state_location[prod]="my-bucket/tfstate/${folder_name}/prod"
+
+set -euo pipefail
+
+readonly SCRIPT_NAME="$(basename "$0")"
+
+usage() {
+    echo "Usage: $SCRIPT_NAME [-d] [BUCKET/PREFIX] ENVIRONMENT"
+    echo ""
+    echo "With one argument, reads the environment-specific state path from .tinitgcp."
+    echo "With two arguments, uses the provided BUCKET/PREFIX directly."
+    exit 0
+}
+
+find_project_config() {
+    local invocation_dir="$1"
+    local search_root="$2"
+    local config_search_dir="$invocation_dir"
+
+    while :; do
+        if [[ -r "$config_search_dir/.tinitgcp" ]]; then
+            echo "$config_search_dir/.tinitgcp"
+            return 0
+        fi
+
+        if [[ "$config_search_dir" = "$search_root" ]]; then
+            break
+        fi
+
+        config_search_dir=$(dirname "$config_search_dir")
+    done
+
+    return 1
+}
+
+resolve_state_path() {
+    local project_config="$1"
+    local env_name="$2"
+    local -A state_location
+
+    # Preserve legacy 'env' variable name for .tinitgcp substitution.
+    local env="$env_name"
+
+    # shellcheck source=/dev/null
+    . "$project_config"
+
+    local state_path=${state_location[$env_name]}
+    if [[ -z ${state_path:-} ]]; then
+        echo "Error: no state_location defined for environment '$env_name' in '$project_config'" >&2
+        return 1
+    fi
+
+    echo "$state_path"
+}
+
+run_terraform_init() {
+    local invocation_dir="$1"
+    local bucket="$2"
+    local prefix="$3"
+
+    (
+        cd "$invocation_dir"
+        set -x
+        terraform init -reconfigure \
+            -backend-config="bucket=$bucket" \
+            -backend-config="prefix=$prefix"
+        set +x
+    )
+}
+
+main() {
+    local debug=false
+    local bucket_prefix=""
+    local env_name=""
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -d)
+                debug=true
+                shift
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    if [[ $# -eq 1 ]]; then
+        env_name="$1"
+    elif [[ $# -eq 2 ]]; then
+        bucket_prefix="$1"
+        env_name="$2"
+    else
+        echo "Usage: $SCRIPT_NAME [-d] [BUCKET/PREFIX] ENVIRONMENT" >&2
+        exit 4
+    fi
+
+    if [[ "$debug" = true ]]; then
+        set -x
+    fi
+
+    local invocation_dir
+    invocation_dir="$PWD"
+
+    local git_project_dir
+    git_project_dir="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+
+    local search_root
+    if [[ -z "$git_project_dir" ]]; then
+        search_root="/"
+    else
+        search_root="$git_project_dir"
+    fi
+
+    # Available for substitution in .tinitgcp.
+    local folder_name
+    folder_name="$(basename "$invocation_dir")"
+
+    local project_config
+    project_config=""
+    if ! project_config=$(find_project_config "$invocation_dir" "$search_root"); then
+        project_config=""
+    fi
+
+    local state_path
+    state_path=""
+
+    if [[ -n "$bucket_prefix" ]]; then
+        if [[ -n "$project_config" ]]; then
+            echo "Error: this project has a .tinitgcp file but common state argument '$env_name' given" >&2
+            exit 3
+        fi
+        state_path="$bucket_prefix"
+    else
+        if [[ -z "$project_config" ]]; then
+            echo "Project config '.tinitgcp' not found between '$invocation_dir' and '$search_root'" >&2
+            exit 2
+        fi
+
+        if ! state_path=$(resolve_state_path "$project_config" "$env_name"); then
+            exit 5
+        fi
+    fi
+
+    local bucket=${state_path%%/*}
+    local base_prefix=${state_path#*/}
+
+    run_terraform_init "$invocation_dir" "$bucket" "$base_prefix"
+}
+
+main "$@"

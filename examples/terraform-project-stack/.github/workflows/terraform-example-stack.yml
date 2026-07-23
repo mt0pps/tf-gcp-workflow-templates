@@ -1,0 +1,36 @@
+name: Terraform Example Stack
+
+on:
+  pull_request:
+    paths:
+      - "terraform-project-stack/**"
+      - ".github/workflows/terraform-example-stack.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform-project-stack/**"
+      - ".github/workflows/terraform-example-stack.yml"
+
+concurrency:
+  group: terraform-example-stack-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  cicd:
+    uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-cicd.yml@main
+    secrets: inherit
+    with:
+      runner: private-runners
+      terraform_version: 1.15.7
+      checkout_app_id: ${{ vars.CHECKOUT_APP_ID }}
+      directory: terraform-project-stack
+      environment: prod
+      gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
