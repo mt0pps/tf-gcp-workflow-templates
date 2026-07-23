@@ -75,7 +75,7 @@ jobs:
           persist-credentials: true
 
       - name: Configure Git for Private Modules
-        uses: ./.github/actions/configure-git-for-modules@main
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/configure-git-for-modules@main
         with:
           checkout_app_id: ${{ inputs.checkout_app_id }}
           pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
@@ -108,7 +108,7 @@ jobs:
           persist-credentials: true
 
       - name: Configure Git for Private Modules
-        uses: ./.github/actions/configure-git-for-modules@main
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/configure-git-for-modules@main
         with:
           checkout_app_id: ${{ inputs.checkout_app_id }}
           pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
@@ -157,7 +157,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git for Private Modules
-        uses: ./.github/actions/configure-git-for-modules@main
+        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/configure-git-for-modules@main
         with:
           checkout_app_id: ${{ inputs.checkout_app_id }}
           pem_file: ${{ secrets.CHECKOUT_APP_PEM_FILE }}
