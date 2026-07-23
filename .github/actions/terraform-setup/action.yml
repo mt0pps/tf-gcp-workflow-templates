@@ -12,7 +12,7 @@ inputs:
   tflint_version:
     description: TFLint version to install
     required: true
-    default: 0.64.0
+    default: v0.64.0
 
 runs:
   using: composite
