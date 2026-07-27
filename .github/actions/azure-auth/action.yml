@@ -12,9 +12,23 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Azure Login
+      uses: azure/login@v3.0.0
+      with:
+        client-id: ${{ inputs.client_id }}
+        tenant-id: ${{ inputs.tenant_id }}
+        allow-no-subscriptions: true
+
     - name: Set Azure provider environment variables
       shell: bash
       run: |
         echo "ARM_TENANT_ID=${{ inputs.tenant_id }}" >> "$GITHUB_ENV"
         echo "ARM_CLIENT_ID=${{ inputs.client_id }}" >> "$GITHUB_ENV"
         echo "ARM_USE_OIDC=true" >> "$GITHUB_ENV"
+
+    - name: Azure CLI script
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az account show
