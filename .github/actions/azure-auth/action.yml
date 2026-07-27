@@ -12,8 +12,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Install Azure CLI
+      shell: bash
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
     - name: Azure Login
-      uses: azure/login@v3.0.0
+      uses: azure/login@v3
       with:
         client-id: ${{ inputs.client_id }}
         tenant-id: ${{ inputs.tenant_id }}
