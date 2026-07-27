@@ -12,6 +12,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set up Azure CLI
+      shell: bash
+      run: |
+        if ! command -v az &> /dev/null; then
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        fi
+
     - name: Azure Login
       uses: azure/login@v3
       with:
