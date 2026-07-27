@@ -42,11 +42,6 @@ on:
         required: false
         type: string
         default: ""
-      azure_auth_enabled:
-        description: Set to true to authenticate to Azure AD before running Terraform.
-        required: false
-        type: boolean
-        default: false
     secrets:
       CHECKOUT_APP_PEM_FILE:
         required: false
@@ -119,13 +114,6 @@ jobs:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
 
-      - name: Authenticate to Azure
-        if: inputs.azure_auth_enabled
-        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/azure-auth@main
-        with:
-          tenant_id: ${{ vars.ARM_TENANT_ID }}
-          client_id: ${{ vars.ARM_CLIENT_ID }}
-
       - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
         with:
@@ -163,13 +151,6 @@ jobs:
         with:
           gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
           gcp_service_account: ${{ inputs.gcp_service_account }}
-
-      - name: Authenticate to Azure
-        if: inputs.azure_auth_enabled
-        uses: mt0pps/tf-gcp-workflow-templates/.github/actions/azure-auth@main
-        with:
-          tenant_id: ${{ vars.ARM_TENANT_ID }}
-          client_id: ${{ vars.ARM_CLIENT_ID }}
 
       - name: Setup Terraform
         uses: mt0pps/tf-gcp-workflow-templates/.github/actions/terraform-setup@main
