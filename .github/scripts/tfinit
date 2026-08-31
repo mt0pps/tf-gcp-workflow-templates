@@ -30,7 +30,11 @@ if [[ $# -ne 1 ]]; then
 fi
 
 env=$1
-folder_name=$(basename "$PWD")
+if project_path=$(git -C "$PWD" rev-parse --show-prefix 2>/dev/null) && [[ -n $project_path ]]; then
+    folder_name=${project_path%/}
+else
+    folder_name=$(basename "$PWD")
+fi
 config_file="$PWD/.tfinit"
 
 if [[ ! -r "$config_file" ]]; then
