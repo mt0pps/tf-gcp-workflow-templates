@@ -23,14 +23,3 @@ jobs:
       environment: prod
       gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-
-  # Matrix example using the environment-list input instead of a full object array
-  # cicd_matrix:
-  #   uses: mt0pps/tf-gcp-workflow-templates/.github/workflows/terraform-cicd-matrix.yml@main
-  #   with:
-  #     runner: arc-runner-set
-  #     terraform_version: 1.12.2
-  #     directory: 0-bootstrap
-  #     environments: '["dev", "prod"]'
-  #     gcp_workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-  #     gcp_service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
