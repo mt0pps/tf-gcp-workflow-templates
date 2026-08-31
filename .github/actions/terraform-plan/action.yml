@@ -17,7 +17,7 @@ runs:
   steps:
     - name: Terraform init
       shell: bash
-      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/../../scripts/tf_init" "${{ inputs.environment }}"
+      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/../../scripts/tfinit" "${{ inputs.environment }}"
 
     - name: Terraform plan - ${{ inputs.environment }}
       shell: bash
