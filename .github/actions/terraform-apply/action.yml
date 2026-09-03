@@ -15,9 +15,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Terraform init with tf_init
+    - name: Terraform init with tfinit script
       shell: bash
-      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/../../scripts/tf_init" "${{ inputs.environment }}"
+      run: cd "${{ inputs.directory }}" && bash "${{ github.action_path }}/../../scripts/tfinit" "${{ inputs.environment }}"
 
     - name: Terraform apply - ${{ inputs.environment }}
       shell: bash
